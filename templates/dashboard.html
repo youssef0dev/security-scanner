@@ -1,0 +1,210 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block styles %}
+<style>
+    .profile-card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .profile-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    .scan-card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .scan-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    .scan-status {
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.875rem;
+        font-weight: bold;
+    }
+    .scan-status.completed {
+        background-color: #28a745;
+        color: white;
+    }
+    .scan-status.failed {
+        background-color: #dc3545;
+        color: white;
+    }
+    .scan-status.in-progress {
+        background-color: #ffc107;
+        color: black;
+    }
+    .quick-action {
+        transition: all 0.3s ease;
+    }
+    .quick-action:hover {
+        transform: scale(1.05);
+    }
+    .vulnerability-item {
+        animation: slideIn 0.5s ease-out;
+    }
+    .security-score {
+        font-size: 2.5rem;
+        font-weight: bold;
+        color: #28a745;
+    }
+    .risk-level {
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-weight: bold;
+    }
+    .risk-level.high {
+        background-color: #dc3545;
+        color: white;
+    }
+    .risk-level.medium {
+        background-color: #ffc107;
+        color: black;
+    }
+    .risk-level.low {
+        background-color: #28a745;
+        color: white;
+    }
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    .header-status {
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.875rem;
+    }
+    .header-status.missing {
+        background-color: #dc3545;
+        color: white;
+    }
+    .header-status.present {
+        background-color: #28a745;
+        color: white;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <!-- Welcome Section -->
+        <div class="col-12 mb-4">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <h2 class="card-title">Welcome back, {{ current_user.username }}!</h2>
+                    <p class="card-text">Here's your security scanning dashboard.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Statistics Cards -->
+        <div class="col-md-3 mb-4">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Total Scans</h5>
+                    <p class="card-text display-4">{{ total_scans }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-4">
+            <div class="card bg-warning text-dark">
+                <div class="card-body">
+                    <h5 class="card-title">Total Vulnerabilities</h5>
+                    <p class="card-text display-4">{{ security_stats.total_vulnerabilities }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-4">
+            <div class="card bg-danger text-white">
+                <div class="card-body">
+                    <h5 class="card-title">High Risk Scans</h5>
+                    <p class="card-text display-4">{{ security_stats.high_risk_scans }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-4">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Medium Risk Scans</h5>
+                    <p class="card-text display-4">{{ security_stats.medium_risk_scans }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Scans -->
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Recent Scans</h5>
+                    <a href="{{ url_for('scan_history') }}" class="btn btn-primary btn-sm">View All</a>
+                </div>
+                <div class="card-body">
+                    {% if recent_scans %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>URL</th>
+                                        <th>Date</th>
+                                        <th>Status</th>
+                                        <th>Security Score</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for scan in recent_scans %}
+                                    <tr>
+                                        <td>{{ scan.url }}</td>
+                                        <td>{{ scan.scan_date.strftime('%Y-%m-%d %H:%M') }}</td>
+                                        <td>
+                                            <span class="badge {% if scan.risk_level == 'high' %}bg-danger{% elif scan.risk_level == 'medium' %}bg-warning{% else %}bg-success{% endif %}">
+                                                {{ scan.risk_level|title }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <div class="progress" style="height: 20px;">
+                                                <div class="progress-bar {% if scan.security_score >= 80 %}bg-success{% elif scan.security_score >= 60 %}bg-warning{% else %}bg-danger{% endif %}" 
+                                                     role="progressbar" 
+                                                     style="width: {{ scan.security_score }}%"
+                                                     aria-valuenow="{{ scan.security_score }}" 
+                                                     aria-valuemin="0" 
+                                                     aria-valuemax="100">
+                                                    {{ scan.security_score }}%
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <a href="{{ url_for('scan_results', scan_id=scan.id) }}" class="btn btn-primary btn-sm">
+                                                <i class="fas fa-eye"></i> View Details
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                            <h4>No scans yet</h4>
+                            <p class="text-muted">Start your first security scan to see results here.</p>
+                            <a href="{{ url_for('index') }}" class="btn btn-primary">
+                                <i class="fas fa-search me-2"></i>Start Scanning
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

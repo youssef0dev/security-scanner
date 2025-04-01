@@ -1,0 +1,462 @@
+{% extends "base.html" %}
+
+{% block title %}Scan Results{% endblock %}
+
+{% block styles %}
+<style>
+    .result-card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .result-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    .security-score {
+        font-size: 3rem;
+        font-weight: bold;
+        color: #28a745;
+    }
+    .risk-level {
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-weight: bold;
+    }
+    .risk-level.high {
+        background-color: #dc3545;
+        color: white;
+    }
+    .risk-level.medium {
+        background-color: #ffc107;
+        color: black;
+    }
+    .risk-level.low {
+        background-color: #28a745;
+        color: white;
+    }
+    .header-status {
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.875rem;
+    }
+    .header-status.missing {
+        background-color: #dc3545;
+        color: white;
+    }
+    .header-status.present {
+        background-color: #28a745;
+        color: white;
+    }
+    .vulnerability-item {
+        animation: slideIn 0.5s ease-out;
+    }
+    .vulnerability-severity {
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.875rem;
+        font-weight: bold;
+    }
+    .vulnerability-severity.high {
+        background-color: #dc3545;
+        color: white;
+    }
+    .vulnerability-severity.medium {
+        background-color: #ffc107;
+        color: black;
+    }
+    .vulnerability-severity.low {
+        background-color: #28a745;
+        color: white;
+    }
+    .recommendation-priority {
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.875rem;
+        font-weight: bold;
+    }
+    .recommendation-priority.high {
+        background-color: #dc3545;
+        color: white;
+    }
+    .recommendation-priority.medium {
+        background-color: #ffc107;
+        color: black;
+    }
+    .recommendation-priority.low {
+        background-color: #28a745;
+        color: white;
+    }
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    .fix-button {
+        transition: all 0.3s ease;
+    }
+    .fix-button:hover {
+        transform: scale(1.05);
+    }
+    .fix-steps {
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-top: 1rem;
+    }
+    .fix-step-item {
+        display: flex;
+        align-items: flex-start;
+        margin-bottom: 0.5rem;
+    }
+    .fix-step-number {
+        background-color: #007bff;
+        color: white;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 0.5rem;
+        flex-shrink: 0;
+    }
+    .fix-step-content {
+        flex-grow: 1;
+    }
+    .fix-step-title {
+        font-weight: bold;
+        margin-bottom: 0.25rem;
+    }
+    .fix-step-description {
+        font-size: 0.9rem;
+        color: #6c757d;
+    }
+    .fix-step-code {
+        background-color: #2d2d2d;
+        color: #fff;
+        padding: 0.5rem;
+        border-radius: 4px;
+        margin-top: 0.5rem;
+        font-family: monospace;
+        font-size: 0.85rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <!-- Summary Card -->
+        <div class="col-md-4">
+            <div class="card shadow-sm result-card">
+                <div class="card-body text-center">
+                    <h5 class="card-title mb-4">Security Score</h5>
+                    <div class="security-score mb-3">{{ results.security_score }}</div>
+                    <div class="risk-level {{ results.risk_level }}">
+                        {{ results.risk_level|title }} Risk
+                    </div>
+                    <hr>
+                    <div class="text-muted">
+                        <small>Scan completed in {{ results.scan_duration }} seconds</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Results -->
+        <div class="col-md-8">
+            <!-- Server Information -->
+            <div class="card shadow-sm mb-4 result-card">
+                <div class="card-body">
+                    <h5 class="card-title">Server Information</h5>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Server:</strong> {{ results.server_info.server }}</p>
+                            <p><strong>Powered By:</strong> {{ results.server_info.powered_by }}</p>
+                            <p><strong>Content Type:</strong> {{ results.server_info.content_type }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Detected Technologies:</h6>
+                            <div class="d-flex flex-wrap gap-2">
+                                {% for tech in results.technologies %}
+                                <span class="badge bg-primary">{{ tech }}</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Security Headers -->
+            <div class="card shadow-sm mb-4 result-card">
+                <div class="card-body">
+                    <h5 class="card-title">Security Headers</h5>
+                    <div class="row">
+                        {% for header, value in results.headers.items() %}
+                        <div class="col-md-6 mb-2">
+                            <div class="header-status {{ 'present' if value != 'Missing' else 'missing' }}">
+                                {{ header }}: {{ value }}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Vulnerabilities -->
+            <div class="card shadow-sm mb-4 result-card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h5 class="card-title text-danger mb-0">Vulnerabilities Found</h5>
+                        <button type="button" class="btn btn-primary fix-button" data-bs-toggle="modal" data-bs-target="#fixAllModal">
+                            <i class="fas fa-tools me-2"></i>Fix All Vulnerabilities
+                        </button>
+                    </div>
+                    {% for vuln in results.vulnerabilities %}
+                    <div class="vulnerability-item mb-4">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h6 class="mb-0">{{ vuln.title }}</h6>
+                            <div>
+                                <span class="vulnerability-severity {{ vuln.severity }} me-2">
+                                    {{ vuln.severity|title }} Severity
+                                </span>
+                                <button type="button" class="btn btn-sm btn-outline-primary fix-button" 
+                                        data-bs-toggle="modal" 
+                                        data-bs-target="#fixModal{{ loop.index }}">
+                                    <i class="fas fa-wrench me-1"></i>Fix
+                                </button>
+                            </div>
+                        </div>
+                        <p class="text-muted mb-2">{{ vuln.description }}</p>
+                        <div class="small">
+                            <p class="mb-1"><strong>Location:</strong> {{ vuln.location }}</p>
+                            <p class="mb-0"><strong>Impact:</strong> {{ vuln.impact }}</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Recommendations -->
+            <div class="card shadow-sm result-card">
+                <div class="card-body">
+                    <h5 class="card-title text-success">Recommendations</h5>
+                    {% for rec in results.recommendations %}
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h6 class="mb-0">{{ rec.title }}</h6>
+                            <span class="recommendation-priority {{ rec.priority }}">
+                                {{ rec.priority|upper }} Priority
+                            </span>
+                        </div>
+                        <p class="text-muted mb-2">{{ rec.description }}</p>
+                        <div class="small">
+                            <strong>Steps:</strong>
+                            <ul class="mb-0">
+                                {% for step in rec.steps %}
+                                <li>{{ step }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="row mt-4">
+        <div class="col-12 text-center">
+            <a href="{{ url_for('download_report') }}" class="btn btn-primary me-2">
+                <i class="fas fa-download me-2"></i>Download Report
+            </a>
+            <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Individual Fix Modals -->
+{% for vuln in results.vulnerabilities %}
+<div class="modal fade" id="fixModal{{ loop.index }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Fix: {{ vuln.title }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-{{ 'danger' if vuln.severity == 'high' else 'warning' if vuln.severity == 'medium' else 'info' }}">
+                    <strong>Severity:</strong> {{ vuln.severity|title }}<br>
+                    <strong>Location:</strong> {{ vuln.location }}<br>
+                    <strong>Impact:</strong> {{ vuln.impact }}
+                </div>
+                
+                <h6 class="mt-4">Fix Steps:</h6>
+                <div class="fix-steps">
+                    {% if vuln.severity == 'high' and 'SQL Injection' in vuln.title %}
+                        <div class="fix-step-item">
+                            <div class="fix-step-number">1</div>
+                            <div class="fix-step-content">
+                                <div class="fix-step-title">Use Prepared Statements</div>
+                                <div class="fix-step-description">Replace direct SQL queries with prepared statements to prevent SQL injection.</div>
+                                <div class="fix-step-code">
+// Before (Vulnerable)
+$query = "SELECT * FROM users WHERE id = " . $_GET['id'];
+$result = mysql_query($query);
+
+// After (Secure)
+$stmt = $pdo->prepare("SELECT * FROM users WHERE id = ?");
+$stmt->execute([$_GET['id']]);
+$result = $stmt->fetch();
+                                </div>
+                            </div>
+                        </div>
+                        <div class="fix-step-item">
+                            <div class="fix-step-number">2</div>
+                            <div class="fix-step-content">
+                                <div class="fix-step-title">Input Validation</div>
+                                <div class="fix-step-description">Add proper input validation before processing user data.</div>
+                                <div class="fix-step-code">
+// Add input validation
+if (!is_numeric($_GET['id']) || $_GET['id'] <= 0) {
+    die('Invalid input');
+}
+                                </div>
+                            </div>
+                        </div>
+                    {% elif vuln.severity == 'high' and 'XSS' in vuln.title %}
+                        <div class="fix-step-item">
+                            <div class="fix-step-number">1</div>
+                            <div class="fix-step-content">
+                                <div class="fix-step-title">Output Encoding</div>
+                                <div class="fix-step-description">Implement proper output encoding to prevent XSS attacks.</div>
+                                <div class="fix-step-code">
+// Before (Vulnerable)
+echo $_GET['search'];
+
+// After (Secure)
+echo htmlspecialchars($_GET['search'], ENT_QUOTES, 'UTF-8');
+                                </div>
+                            </div>
+                        </div>
+                        <div class="fix-step-item">
+                            <div class="fix-step-number">2</div>
+                            <div class="fix-step-content">
+                                <div class="fix-step-title">Content Security Policy</div>
+                                <div class="fix-step-description">Add Content Security Policy header to restrict script execution.</div>
+                                <div class="fix-step-code">
+// Add to your .htaccess or server configuration
+Header set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval';"
+                                </div>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="fix-step-item">
+                            <div class="fix-step-number">1</div>
+                            <div class="fix-step-content">
+                                <div class="fix-step-title">Review Security Headers</div>
+                                <div class="fix-step-description">Add missing security headers to protect against common vulnerabilities.</div>
+                                <div class="fix-step-code">
+// Add to your .htaccess or server configuration
+Header set X-Frame-Options "SAMEORIGIN"
+Header set X-XSS-Protection "1; mode=block"
+Header set X-Content-Type-Options "nosniff"
+Header set Strict-Transport-Security "max-age=31536000; includeSubDomains"
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary">
+                    <i class="fas fa-check me-2"></i>Mark as Fixed
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+<!-- Fix All Modal -->
+<div class="modal fade" id="fixAllModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Fix All Vulnerabilities</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    This guide will help you fix all identified vulnerabilities. Follow the steps in order of priority.
+                </div>
+                
+                <div class="fix-steps">
+                    <h6 class="mb-3">High Priority Fixes:</h6>
+                    {% for vuln in results.vulnerabilities if vuln.severity == 'high' %}
+                    <div class="fix-step-item">
+                        <div class="fix-step-number">{{ loop.index }}</div>
+                        <div class="fix-step-content">
+                            <div class="fix-step-title">{{ vuln.title }}</div>
+                            <div class="fix-step-description">{{ vuln.description }}</div>
+                            <button type="button" class="btn btn-sm btn-outline-primary mt-2" 
+                                    data-bs-toggle="modal" 
+                                    data-bs-target="#fixModal{{ loop.index }}">
+                                View Detailed Fix Steps
+                            </button>
+                        </div>
+                    </div>
+                    {% endfor %}
+
+                    <h6 class="mb-3 mt-4">Medium Priority Fixes:</h6>
+                    {% for vuln in results.vulnerabilities if vuln.severity == 'medium' %}
+                    <div class="fix-step-item">
+                        <div class="fix-step-number">{{ loop.index }}</div>
+                        <div class="fix-step-content">
+                            <div class="fix-step-title">{{ vuln.title }}</div>
+                            <div class="fix-step-description">{{ vuln.description }}</div>
+                            <button type="button" class="btn btn-sm btn-outline-primary mt-2" 
+                                    data-bs-toggle="modal" 
+                                    data-bs-target="#fixModal{{ loop.index }}">
+                                View Detailed Fix Steps
+                            </button>
+                        </div>
+                    </div>
+                    {% endfor %}
+
+                    <h6 class="mb-3 mt-4">Low Priority Fixes:</h6>
+                    {% for vuln in results.vulnerabilities if vuln.severity == 'low' %}
+                    <div class="fix-step-item">
+                        <div class="fix-step-number">{{ loop.index }}</div>
+                        <div class="fix-step-content">
+                            <div class="fix-step-title">{{ vuln.title }}</div>
+                            <div class="fix-step-description">{{ vuln.description }}</div>
+                            <button type="button" class="btn btn-sm btn-outline-primary mt-2" 
+                                    data-bs-toggle="modal" 
+                                    data-bs-target="#fixModal{{ loop.index }}">
+                                View Detailed Fix Steps
+                            </button>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary">
+                    <i class="fas fa-check me-2"></i>Mark All as Fixed
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

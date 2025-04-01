@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نتائج فحص الأمان</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('index') }}">فاحص أمان المواقع</a>
+        </div>
+    </nav>
+
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-12">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h3>نتائج فحص شهادة SSL</h3>
+                    </div>
+                    <div class="card-body">
+                        {% if results.ssl_check.status == 'آمن' %}
+                            <div class="alert alert-success">
+                                <h5>الحالة: {{ results.ssl_check.status }}</h5>
+                                <p>المصدر: {{ results.ssl_check.issuer }}</p>
+                                <p>تاريخ الانتهاء: {{ results.ssl_check.expiry }}</p>
+                                <p>البروتوكول: {{ results.ssl_check.protocol }}</p>
+                            </div>
+                        {% else %}
+                            <div class="alert alert-danger">
+                                <h5>الحالة: {{ results.ssl_check.status }}</h5>
+                                <p>الخطأ: {{ results.ssl_check.error }}</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h3>نتائج فحص DNS</h3>
+                    </div>
+                    <div class="card-body">
+                        {% if results.dns_check.status == 'جيد' %}
+                            <div class="alert alert-success">
+                                <h5>الحالة: {{ results.dns_check.status }}</h5>
+                                <div class="mt-3">
+                                    <h6>سجلات DNS:</h6>
+                                    <pre class="bg-light p-3 rounded">{{ results.dns_check.records | tojson(indent=2) }}</pre>
+                                </div>
+                            </div>
+                        {% else %}
+                            <div class="alert alert-danger">
+                                <h5>الحالة: {{ results.dns_check.status }}</h5>
+                                <p>الخطأ: {{ results.dns_check.error }}</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h3>نتائج فحص رؤوس HTTP</h3>
+                    </div>
+                    <div class="card-body">
+                        {% if results.headers_check.status == 'جيد' %}
+                            <div class="alert alert-success">
+                                <h5>الحالة: {{ results.headers_check.status }}</h5>
+                                <div class="mt-3">
+                                    <h6>رؤوس الأمان:</h6>
+                                    <ul class="list-group">
+                                        {% for header, value in results.headers_check.headers.items() %}
+                                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                {{ header }}
+                                                <span class="badge {% if value == 'غير موجود' %}bg-danger{% else %}bg-success{% endif %} rounded-pill">
+                                                    {{ value }}
+                                                </span>
+                                            </li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            </div>
+                        {% else %}
+                            <div class="alert alert-danger">
+                                <h5>الحالة: {{ results.headers_check.status }}</h5>
+                                <p>الخطأ: {{ results.headers_check.error }}</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h3>الثغرات المكتشفة</h3>
+                    </div>
+                    <div class="card-body">
+                        {% if results.vulnerabilities %}
+                            {% for vuln in results.vulnerabilities %}
+                                <div class="alert alert-{{ 'danger' if vuln.severity == 'عالية' else 'warning' if vuln.severity == 'متوسط' else 'info' }}">
+                                    <h5>{{ vuln.type }}</h5>
+                                    <p>{{ vuln.description }}</p>
+                                    <span class="badge bg-{{ 'danger' if vuln.severity == 'عالية' else 'warning' if vuln.severity == 'متوسط' else 'info' }}">
+                                        {{ vuln.severity }}
+                                    </span>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="alert alert-success">
+                                <h5>لم يتم اكتشاف أي ثغرات</h5>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h3>التوصيات</h3>
+                    </div>
+                    <div class="card-body">
+                        {% if results.recommendations %}
+                            {% for rec in results.recommendations %}
+                                <div class="alert alert-{{ 'danger' if rec.priority == 'عالية' else 'warning' if rec.priority == 'متوسطة' else 'info' }}">
+                                    <h5>{{ rec.type }}</h5>
+                                    <p>{{ rec.description }}</p>
+                                    <span class="badge bg-{{ 'danger' if rec.priority == 'عالية' else 'warning' if rec.priority == 'متوسطة' else 'info' }}">
+                                        {{ rec.priority }}
+                                    </span>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="alert alert-success">
+                                <h5>لا توجد توصيات حالياً</h5>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="text-center mb-4">
+                    <a href="{{ url_for('index') }}" class="btn btn-primary">فحص موقع آخر</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer mt-auto py-3 bg-light">
+        <div class="container text-center">
+            <span class="text-muted">جميع الحقوق محفوظة © 2024</span>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html> 
