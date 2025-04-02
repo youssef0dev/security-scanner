@@ -5,6 +5,10 @@
 
 [build.environment]
   PYTHON_VERSION = "3.11"
+  FLASK_APP = "app.py"
+  FLASK_ENV = "production"
+  SECRET_KEY = "security-scanner-secret-key-2024-xyz789"
+  DATABASE_URL = "sqlite:///security_scanner.db"
 
 [functions]
   node_bundler = "esbuild"
@@ -44,12 +48,6 @@
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
     Content-Security-Policy = "default-src 'self' 'unsafe-inline' 'unsafe-eval' https:; img-src 'self' data: https:; font-src 'self' data: https:;"
-
-[build.environment]
-  FLASK_APP = "app.py"
-  FLASK_ENV = "production"
-  SECRET_KEY = "security-scanner-secret-key-2024-xyz789"
-  DATABASE_URL = "sqlite:///security_scanner.db"
 
 [[plugins]]
   package = "@netlify/plugin-python-core" 
