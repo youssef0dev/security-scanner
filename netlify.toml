@@ -15,15 +15,15 @@
   node_bundler = "esbuild"
 
 [[redirects]]
+  from = "/static/*"
+  to = "/static/:splat"
+  status = 200
+
+[[redirects]]
   from = "/*"
   to = "/.netlify/functions/server"
   status = 200
   force = true
-
-[[redirects]]
-  from = "/static/*"
-  to = "/static/:splat"
-  status = 200
 
 [[headers]]
   for = "/*"
