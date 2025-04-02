@@ -7,24 +7,20 @@
   PYTHON_VERSION = "3.11"
   FLASK_APP = "app.py"
   FLASK_ENV = "production"
-  SECRET_KEY = "your-secret-key-here"
+  SECRET_KEY = "security-scanner-secret-key-2024-xyz789"
   DATABASE_URL = "sqlite:///security_scanner.db"
   PYTHONUNBUFFERED = "1"
 
 [functions]
   directory = "netlify/functions"
   node_bundler = "esbuild"
+  external_node_modules = ["flask", "werkzeug"]
+  included_files = ["app.py", "models.py", "forms.py", "utils.py", "templates/**", "static/**"]
 
 [[redirects]]
   from = "/static/*"
   to = "/static/:splat"
   status = 200
-
-[[redirects]]
-  from = "/"
-  to = "/.netlify/functions/server"
-  status = 200
-  force = true
 
 [[redirects]]
   from = "/*"
