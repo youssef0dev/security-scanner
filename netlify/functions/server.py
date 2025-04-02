@@ -1,9 +1,12 @@
 from http.server import BaseHTTPRequestHandler
 import json
-from app import app
+from app import create_app
 import os
 import base64
 import sys
+
+# Create the Flask app
+app = create_app()
 
 def handler(event, context):
     """Handle incoming requests"""
