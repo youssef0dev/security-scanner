@@ -1,38 +1,55 @@
 [build]
   command = "pip install -r requirements.txt"
-  publish = "."
   functions = "netlify/functions"
+  publish = "static"
 
 [build.environment]
   PYTHON_VERSION = "3.11"
-  FLASK_APP = "app.py"
-  FLASK_ENV = "production"
-  SECRET_KEY = "security-scanner-secret-key-2024-xyz789"
-  DATABASE_URL = "sqlite:///security_scanner.db"
-  PYTHONUNBUFFERED = "1"
 
 [functions]
-  directory = "netlify/functions"
   node_bundler = "esbuild"
   external_node_modules = ["flask", "werkzeug"]
-  included_files = ["app.py", "models.py", "forms.py", "utils.py", "templates/**", "static/**"]
 
-[[redirects]]
-  from = "/static/*"
-  to = "/static/:splat"
-  status = 200
+[functions.server]
+  runtime = "python3.11"
+  handler = "server.handler"
 
 [[redirects]]
   from = "/*"
   to = "/.netlify/functions/server"
   status = 200
-  force = true
+
+[build.processing]
+  skip_processing = false
+
+[build.processing.css]
+  bundle = true
+  minify = true
+
+[build.processing.js]
+  bundle = true
+  minify = true
+
+[build.processing.html]
+  pretty_urls = true
+
+[build.processing.images]
+  compress = true
 
 [[headers]]
   for = "/*"
-    [headers.values]
-    Access-Control-Allow-Origin = "*"
-    Content-Security-Policy = "default-src 'self' 'unsafe-inline' 'unsafe-eval' https:; img-src 'self' data: https:; font-src 'self' data: https:;"
+  [headers.values]
     X-Frame-Options = "DENY"
+    X-XSS-Protection = "1; mode=block"
     X-Content-Type-Options = "nosniff"
-    Referrer-Policy = "strict-origin-when-cross-origin" 
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Content-Security-Policy = "default-src 'self' 'unsafe-inline' 'unsafe-eval' https:; img-src 'self' data: https:; font-src 'self' data: https:;"
+
+[build.environment]
+  FLASK_APP = "app.py"
+  FLASK_ENV = "production"
+  SECRET_KEY = "security-scanner-secret-key-2024-xyz789"
+  DATABASE_URL = "sqlite:///security_scanner.db"
+
+[[plugins]]
+  package = "@netlify/plugin-python-core" 

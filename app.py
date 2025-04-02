@@ -4,6 +4,7 @@ from datetime import datetime
 import os
 import tempfile
 import time
+import json
 from forms import LoginForm, RegisterForm, ScanForm
 from models import db, User, ScanResult, SecurityEvent
 from reportlab.lib.pagesizes import letter
@@ -20,6 +21,8 @@ def create_app():
     app.config['SESSION_COOKIE_SECURE'] = True
     app.config['SESSION_COOKIE_HTTPONLY'] = True
     app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+    app.config['SERVER_NAME'] = None  # Disable server name checking
+    app.config['PREFERRED_URL_SCHEME'] = 'https'
 
     # Initialize Flask extensions
     db.init_app(app)
@@ -102,102 +105,65 @@ def create_app():
                             'severity': 'medium',
                             'location': 'All pages',
                             'impact': 'Reduced protection against common web vulnerabilities'
-                        },
-                        {
-                            'title': 'Medium: Outdated WordPress Version',
-                            'description': 'WordPress version 5.8.1 is outdated and has known vulnerabilities',
-                            'severity': 'medium',
-                            'location': 'WordPress core',
-                            'impact': 'Potential exploitation of known vulnerabilities'
-                        },
-                        {
-                            'title': 'Low: Weak Password Policy',
-                            'description': 'No password complexity requirements enforced',
-                            'severity': 'low',
-                            'location': 'User registration',
-                            'impact': 'Increased risk of account compromise'
                         }
                     ],
                     'recommendations': [
                         {
-                            'title': 'Fix SQL Injection',
-                            'description': 'Implement prepared statements and input validation in contact form',
+                            'title': 'Implement SQL Injection Protection',
+                            'description': 'Use parameterized queries and input validation',
                             'priority': 'high',
-                            'steps': [
-                                'Use parameterized queries',
-                                'Validate and sanitize all user inputs',
-                                'Implement proper error handling'
-                            ]
-                        },
-                        {
-                            'title': 'Address XSS Vulnerability',
-                            'description': 'Implement proper output encoding and input validation',
-                            'priority': 'high',
-                            'steps': [
-                                'Use HTML encoding for output',
-                                'Implement Content Security Policy',
-                                'Validate and sanitize search inputs'
-                            ]
+                            'impact': 'Critical security improvement'
                         },
                         {
                             'title': 'Add Security Headers',
                             'description': 'Implement missing security headers',
                             'priority': 'medium',
-                            'steps': [
-                                'Add X-Frame-Options header',
-                                'Add X-XSS-Protection header',
-                                'Add Content-Security-Policy header',
-                                'Add Strict-Transport-Security header'
-                            ]
+                            'impact': 'Enhanced security posture'
                         },
                         {
-                            'title': 'Update WordPress',
-                            'description': 'Update WordPress to the latest version',
+                            'title': 'Update Server Software',
+                            'description': 'Update nginx and PHP to latest versions',
                             'priority': 'medium',
-                            'steps': [
-                                'Backup website before update',
-                                'Update WordPress core',
-                                'Test website functionality after update'
-                            ]
-                        },
-                        {
-                            'title': 'Strengthen Password Policy',
-                            'description': 'Implement stronger password requirements',
-                            'priority': 'low',
-                            'steps': [
-                                'Require minimum password length',
-                                'Enforce password complexity',
-                                'Implement password expiration'
-                            ]
+                            'impact': 'Improved security and performance'
                         }
                     ]
                 }
                 
-                # Create new scan result
-                scan_result = ScanResult(
+                # Save scan results to database
+                scan = ScanResult(
                     user_id=current_user.id,
-                    url=scan_results['url'],
+                    url=form.url.data,
                     scan_date=scan_results['scan_date'],
                     security_score=scan_results['security_score'],
                     risk_level=scan_results['risk_level'],
                     scan_duration=scan_results['scan_duration'],
-                    server_info=scan_results['server_info'],
-                    technologies=scan_results['technologies'],
-                    headers=scan_results['headers'],
-                    vulnerabilities=scan_results['vulnerabilities'],
-                    recommendations=scan_results['recommendations']
+                    server_info=json.dumps(scan_results['server_info']),
+                    technologies=json.dumps(scan_results['technologies']),
+                    headers=json.dumps(scan_results['headers']),
+                    vulnerabilities=json.dumps(scan_results['vulnerabilities']),
+                    recommendations=json.dumps(scan_results['recommendations'])
                 )
                 
-                db.session.add(scan_result)
+                db.session.add(scan)
                 db.session.commit()
                 
-                # Store results in session for PDF generation
-                session['scan_results'] = scan_results
-                return render_template('site_results.html', results=scan_results)
+                # Log security event
+                event = SecurityEvent(
+                    user_id=current_user.id,
+                    event_type='scan',
+                    ip_address=request.remote_addr,
+                    user_agent=request.user_agent.string
+                )
+                db.session.add(event)
+                db.session.commit()
                 
+                flash('Scan completed successfully!', 'success')
+                return redirect(url_for('site_results', scan_id=scan.id))
+            
             except Exception as e:
-                flash('An error occurred during the scan. Please try again.', 'error')
-                return redirect(url_for('index'))
+                db.session.rollback()
+                flash(f'Error during scan: {str(e)}', 'danger')
+                return redirect(url_for('scan'))
         
         return render_template('scan.html', form=form)
 
