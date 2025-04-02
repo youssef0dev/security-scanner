@@ -1,11 +1,13 @@
 {
-  "name": "security-scanner-app",
+  "name": "security-scanner",
   "version": "1.0.0",
-  "description": "Security Scanner Web Application",
+  "description": "Web Security Scanner Application",
   "private": true,
   "scripts": {
-    "build": "pip install -r requirements.txt && gunicorn app:app"
+    "build": "pip install -r requirements.txt"
   },
   "dependencies": {},
-  "devDependencies": {}
+  "devDependencies": {
+    "@netlify/plugin-python-core": "^1.0.0"
+  }
 } 
