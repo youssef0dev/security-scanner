@@ -7,6 +7,8 @@
   PYTHON_VERSION = "3.11"
   FLASK_APP = "app.py"
   FLASK_ENV = "production"
+  SECRET_KEY = "your-secret-key-here"
+  DATABASE_URL = "sqlite:///security_scanner.db"
 
 [functions]
   directory = "netlify/functions"
