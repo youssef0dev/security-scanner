@@ -5,12 +5,4 @@
 [build.environment]
   PYTHON_VERSION = "3.11"
   FLASK_APP = "app.py"
-  FLASK_ENV = "production"
-
-[[redirects]]
-  from = "/*"
-  to = "/.netlify/functions/app"
-  status = 200
-
-[functions]
-  directory = "netlify/functions" 
+  FLASK_ENV = "production" 
