@@ -9,6 +9,7 @@
   FLASK_ENV = "production"
   SECRET_KEY = "your-secret-key-here"
   DATABASE_URL = "sqlite:///security_scanner.db"
+  PYTHONUNBUFFERED = "1"
 
 [functions]
   directory = "netlify/functions"
@@ -18,6 +19,12 @@
   from = "/static/*"
   to = "/static/:splat"
   status = 200
+
+[[redirects]]
+  from = "/"
+  to = "/.netlify/functions/server"
+  status = 200
+  force = true
 
 [[redirects]]
   from = "/*"

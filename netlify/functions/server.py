@@ -3,6 +3,7 @@ import json
 from app import app
 import os
 import base64
+import sys
 
 def handler(event, context):
     """Handle incoming requests"""
@@ -15,12 +16,15 @@ def handler(event, context):
         query_string = event.get('queryStringParameters', {})
         host = headers.get('host', '')
 
+        print(f"Processing request: {method} {path}")  # Debug log
+
         # Create base URL
         base_url = f"https://{host}"
         
         # Handle static files
         if path.startswith('/static/'):
             static_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'static', path[8:])
+            print(f"Looking for static file: {static_path}")  # Debug log
             if os.path.exists(static_path):
                 with open(static_path, 'rb') as f:
                     content = f.read()
@@ -53,6 +57,8 @@ def handler(event, context):
             for key, value in response.headers:
                 response_headers[key] = str(value)
             
+            print(f"Response status: {response.status_code}")  # Debug log
+            
             # Return the response
             return {
                 'statusCode': response.status_code,
@@ -66,6 +72,8 @@ def handler(event, context):
             
     except Exception as e:
         print(f"Error processing request: {str(e)}")  # Log the error
+        print(f"Error type: {type(e)}")  # Log error type
+        print(f"Error details: {sys.exc_info()}")  # Log full error details
         return {
             'statusCode': 500,
             'headers': {'Content-Type': 'application/json'},
