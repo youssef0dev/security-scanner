@@ -12,7 +12,7 @@ dnspython==2.1.0
 beautifulsoup4==4.9.3
 python-whois==0.7.3
 python-nmap==0.7.1
-Pillow==10.2.0
+Pillow==9.5.0
 gunicorn==20.1.0
 pytest==6.2.5
 coverage==5.5
