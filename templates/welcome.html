@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 text-center">
+            <h1 class="display-4 mb-4">مرحباً بك في فاحص الأمان</h1>
+            <p class="lead mb-4">
+                أداة متقدمة لفحص وتحليل أمان المواقع الإلكترونية
+            </p>
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <h5 class="card-title">تسجيل الدخول</h5>
+                            <p class="card-text">لديك حساب بالفعل؟ قم بتسجيل الدخول للوصول إلى لوحة التحكم.</p>
+                            <a href="{{ url_for('login') }}" class="btn btn-primary">تسجيل الدخول</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <h5 class="card-title">إنشاء حساب جديد</h5>
+                            <p class="card-text">مستخدم جديد؟ قم بإنشاء حساب للبدء في استخدام الخدمة.</p>
+                            <a href="{{ url_for('register') }}" class="btn btn-success">إنشاء حساب</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="features mt-5">
+                <h2 class="mb-4">المميزات</h2>
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="feature-item">
+                            <i class="fas fa-shield-alt fa-3x mb-3"></i>
+                            <h4>فحص شامل</h4>
+                            <p>تحليل متكامل لنقاط الضعف الأمنية</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="feature-item">
+                            <i class="fas fa-chart-line fa-3x mb-3"></i>
+                            <h4>تقارير تفصيلية</h4>
+                            <p>تقارير مفصلة عن نتائج الفحص</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="feature-item">
+                            <i class="fas fa-lock fa-3x mb-3"></i>
+                            <h4>حماية متقدمة</h4>
+                            <p>توصيات لتحسين الأمان</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

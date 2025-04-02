@@ -28,9 +28,11 @@ login_manager.login_message = 'Please log in to access this page.'
 def load_user(id):
     return User.query.get(int(id))
 
-@app.before_first_request
-def create_tables():
-    db.create_all()
+def init_db():
+    with app.app_context():
+        db.create_all()
+
+init_db()
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -144,9 +146,15 @@ def dashboard():
                          security_stats=security_stats,
                          ScanResult=ScanResult)
 
-@app.route('/', methods=['GET', 'POST'])
+@app.route('/')
+def welcome():
+    if current_user.is_authenticated:
+        return redirect(url_for('dashboard'))
+    return render_template('welcome.html')
+
+@app.route('/scan', methods=['GET', 'POST'])
 @login_required
-def index():
+def scan():
     form = ScanForm()
     if form.validate_on_submit():
         try:
