@@ -6,7 +6,6 @@
   PYTHON_VERSION = "3.11"
   FLASK_APP = "app.py"
   FLASK_ENV = "production"
-  NODE_VERSION = "0"  # Disable Node.js
 
 [[redirects]]
   from = "/*"
