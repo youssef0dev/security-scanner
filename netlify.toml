@@ -1,9 +1,13 @@
 [build]
-  command = "pip install -r requirements.txt"
+  command = "npm install && pip install -r requirements.txt"
   publish = "."
 
 [build.environment]
   PYTHON_VERSION = "3.11"
+  FLASK_APP = "app.py"
+  FLASK_ENV = "production"
 
-[[plugins]]
-  package = "@netlify/plugin-python-core" 
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200 
