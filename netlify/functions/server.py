@@ -10,27 +10,41 @@ def handler(event, context):
         method = event.get('httpMethod', 'GET')
         headers = event.get('headers', {})
         body = event.get('body', '')
+        query_string = event.get('queryStringParameters', {})
         
         # Create a test request context
         with app.test_request_context(
             path=path,
-            base_url=headers.get('host', ''),
+            base_url=f"https://{headers.get('host', '')}",
             method=method,
-            input_stream=body,
+            input_stream=body.encode() if body else None,
+            query_string=query_string,
             content_type=headers.get('content-type'),
             headers=headers
         ):
             # Process the request
             response = app.full_dispatch_request()
             
+            # Get response data
+            response_data = response.get_data()
+            
             # Return the response
             return {
                 'statusCode': response.status_code,
-                'headers': dict(response.headers),
-                'body': response.get_data(as_text=True)
+                'headers': {
+                    'Content-Type': response.content_type,
+                    **dict(response.headers)
+                },
+                'body': response_data.decode('utf-8') if isinstance(response_data, bytes) else response_data,
+                'isBase64Encoded': False
             }
     except Exception as e:
         return {
             'statusCode': 500,
-            'body': json.dumps({'error': str(e)})
+            'headers': {'Content-Type': 'application/json'},
+            'body': json.dumps({
+                'error': str(e),
+                'path': path,
+                'method': method
+            })
         } 
