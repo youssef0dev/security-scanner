@@ -1,5 +1,5 @@
 [build]
-  command = "pip install -r requirements.txt && gunicorn app:app"
+  command = "pip install -r requirements.txt"
   publish = "."
 
 [build.environment]
@@ -9,5 +9,5 @@
 
 [[redirects]]
   from = "/*"
-  to = "/index.html"
+  to = "/.netlify/functions/server"
   status = 200 
