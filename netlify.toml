@@ -17,6 +17,7 @@
 [functions.server]
   runtime = "python3.11"
   handler = "server.handler"
+  included_files = ["app.py", "models.py", "forms.py", "utils.py", "templates/**", "static/**"]
 
 [[redirects]]
   from = "/*"
